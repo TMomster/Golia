@@ -592,6 +592,15 @@ class ElementProperty:
             f"target={self.target!r} parent={bool(self.parent_node)}>"
         )
 
+    def remove(self, **attrs: Any) -> 'ElementProperty':
+        """Delete element created by this attribute."""
+        parent = self._get_parent()
+        parent.children = [
+            child for child in parent.children
+            if not (child.tag == self.tag and all(child.attr.get(k) == v for k, v in attrs.items()))
+        ]
+        return self
+
 
 class ElementPropertyWithParent(ElementProperty):
     """Specialized ElementProperty with fixed parent node."""
@@ -1251,6 +1260,28 @@ class HTMLProxy:
             f"<HTMLProxy target={self.target!r} "
             f"current_tag={self.current_node.tag if self.current_node else None}>"
         )
+
+    def remove(self, tag: Optional[str] = None, **attrs: Any) -> 'HTMLProxy':
+        """Remove element"""
+        parent = self.current_node or (
+            self.container.com.html.head_root 
+            if self.target == "head" 
+            else self.container.com.html.body_root
+        )
+        
+        tag_to_remove = tag or self._pending_tag
+        
+        keep_children = []
+        for child in parent.children:
+            if not isinstance(child, HTMLNode):
+                keep_children.append(child)
+                continue
+            tag_match = (tag_to_remove is None) or (child.tag == tag_to_remove)
+            attrs_match = all(child.attr.get(k) == v for k, v in attrs.items())
+            if not (tag_match and attrs_match):
+                keep_children.append(child)
+        parent.children = keep_children
+        return self
 
 
 class ChainBuilder:
