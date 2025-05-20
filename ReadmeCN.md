@@ -2,7 +2,7 @@
 
 ---
 
-English speaker are advised to read the [English version](./Readme.md) file.
+English speakers are advised to read the [English version](./Readme.md) file.
 
 ---
 
